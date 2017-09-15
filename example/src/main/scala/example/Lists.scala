@@ -46,7 +46,7 @@ object Lists {
       def max_aux(xs: List[Int]): Int = {
         if (xs.isEmpty) 0
         else {
-          var sub_max = max_aux(xs.tail)
+          val sub_max = max_aux(xs.tail)
           if (xs.head > sub_max)
             xs.head
           else
