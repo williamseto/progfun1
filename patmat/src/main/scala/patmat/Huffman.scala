@@ -125,12 +125,22 @@ object Huffman {
    * If `trees` is a list of less than two elements, that list should be returned
    * unchanged.
    */
-  def combine(trees: List[CodeTree]): List[CodeTree] = trees match {
-    case List() => trees
-    case y :: ys => {
-      ys match {
-        case List() => trees
-        case z :: zs => makeCodeTree(y, z) :: zs
+  def combine(trees: List[CodeTree]): List[CodeTree] = {
+    def combineInsert(tree: CodeTree, trees: List[CodeTree]): List[CodeTree] = trees match {
+      case List() => List(tree)
+      case y :: ys => {
+        if (weight(tree) <= weight(y)) tree :: y :: ys
+        else y :: combineInsert(tree, ys)
+      }
+    }
+    trees match {
+      case List() => trees
+      case y :: ys => {
+        ys match {
+          // only 1 element in list
+          case List() => trees
+          case z :: zs => combineInsert(makeCodeTree(y, z), zs)
+        }
       }
     }
   }
@@ -153,9 +163,7 @@ object Huffman {
    */
     def until(endCond: List[CodeTree] => Boolean,
               reduceFunc: List[CodeTree] =>  List[CodeTree])(trees: List[CodeTree]): List[CodeTree] = {
-      println(trees)
       if (endCond(trees)) {
-        //println(weight(trees.head))
         trees
       }
       else until(endCond, reduceFunc)(reduceFunc(trees))
@@ -169,7 +177,6 @@ object Huffman {
    */
   def createCodeTree(chars: List[Char]): CodeTree = {
     val leafs = makeOrderedLeafList(times(chars))
-    //println(leafs)
     until(singleton, combine)(leafs).head
   }
 
@@ -262,8 +269,8 @@ object Huffman {
       tree match {
         case l: Leaf => List((l.char, bits))
         case f: Fork => {
-          mergeCodeTables(convertHelper(f.left, 0 :: bits),
-                          convertHelper(f.right, 1 :: bits))
+          mergeCodeTables(convertHelper(f.left, bits :+ 0),
+                          convertHelper(f.right, bits :+ 1))
         }
       }
     }
